@@ -19,7 +19,7 @@ const SliderSection = () => {
       name: "Hon’ble Shatrudhan Prasad Singh",
       position: "Ministry of Health & Population / Pro-Chancellor",
       image: "assets/team/pro1.jpg",
-      email: "manojhumagain@example.com",
+      email: "pc@mihs.edu.np",
     },
     {
       name: "Prof. Dr. Ankur Shah",

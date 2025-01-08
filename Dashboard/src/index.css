@@ -1,0 +1,5 @@
+@import "react-pdf/dist/Page/AnnotationLayer.css";
+@import "react-pdf/dist/Page/TextLayer.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

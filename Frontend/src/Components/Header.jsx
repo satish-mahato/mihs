@@ -62,7 +62,7 @@ const Header = () => {
             />
             <div>
               <h1 className="text-2xl font-bold md:text-xl">
-                Madhesh Institute of Health Science 
+                Madhesh Institute of Health Science
               </h1>
               <p className="text-sm">Janakpurdham, Madhesh Province, Nepal</p>
             </div>

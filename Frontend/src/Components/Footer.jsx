@@ -1,3 +1,5 @@
+import React from "react";
+
 const Footer = () => {
   return (
     <footer className="bg-blue-200 text-blue-900 py-10 px-6">
@@ -23,22 +25,22 @@ const Footer = () => {
             <h2 className="text-xl font-bold mb-4">Useful Links</h2>
             <ul className="space-y-2">
               <li>
-                <a href="#home" className="hover:text-blue-500">
+                <a href="#home" className="font-medium hover:text-blue-500">
                   Home
                 </a>
               </li>
               <li>
-                <a href="#about" className="hover:text-blue-500">
+                <a href="#about" className="font-medium hover:text-blue-500">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-blue-500">
+                <a href="#services" className="font-medium hover:text-blue-500">
                   Services
                 </a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-blue-500">
+                <a href="#contact" className="font-medium hover:text-blue-500">
                   Contact
                 </a>
               </li>
@@ -63,6 +65,10 @@ const Footer = () => {
           </div>
         </div>
       </div>
+
+      {/* Vertical Line Above Copyright */}
+      <div className="w-full border-t border-blue-400 mt-8"></div>
+
       <div className="bg-blue-200 text-base text-center mt-1 font-serif pt-2">
         <p>
           &copy; {new Date().getFullYear()} Madhesh Institute of Health Science.
