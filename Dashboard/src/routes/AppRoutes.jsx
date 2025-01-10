@@ -4,6 +4,7 @@ import UserAuth from "../auth/UserAuth";
 import Dashboard from "./../components/Dashboard1";
 import Login from "../components/Login";
 import Register from "./../components/Register";
+import Admin from "../components/Admin";
 
 const AppRoutes = () => {
   return (
@@ -16,6 +17,14 @@ const AppRoutes = () => {
           element={
             <UserAuth>
               <Dashboard />
+            </UserAuth>
+          }
+        />
+        <Route
+          path="/gallery"
+          element={
+            <UserAuth>
+              <Admin />
             </UserAuth>
           }
         />

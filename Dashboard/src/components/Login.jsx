@@ -26,7 +26,7 @@ const Login = () => {
         localStorage.setItem("token", res.data.token);
         setUser(res.data.user);
 
-        navigate("/home");
+        navigate("/gallery");
       })
       .catch((err) => {
         console.error(err.response?.data); // Check backend response
@@ -38,10 +38,11 @@ const Login = () => {
           console.log(fieldErrors); // Debugging the parsed errors
           setErrors(fieldErrors);
         } else {
-          setErrors({ general: err.response?.data.message || "An error occurred" });
+          setErrors({
+            general: err.response?.data.message || "An error occurred",
+          });
         }
       });
-      
   }
 
   return (
@@ -65,7 +66,9 @@ const Login = () => {
               type="email"
               id="email"
               className={`w-full p-3 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 ${
-                errors.email ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"
+                errors.email
+                  ? "border-red-500 focus:ring-red-500"
+                  : "focus:ring-blue-500"
               }`}
               placeholder="Enter your email"
             />
@@ -83,7 +86,9 @@ const Login = () => {
               type="password"
               id="password"
               className={`w-full p-3 rounded bg-gray-700 text-white focus:outline-none focus:ring-2 ${
-                errors.password ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"
+                errors.password
+                  ? "border-red-500 focus:ring-red-500"
+                  : "focus:ring-blue-500"
               }`}
               placeholder="Enter your password"
             />
