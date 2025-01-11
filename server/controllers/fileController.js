@@ -34,9 +34,30 @@ const uploadFiles = async (req, res, next) => {
 
 const getFiles = async (req, res, next) => {
   try {
-    const pdfData = await PdfSchema.find({});
-    const imageData = await ImageSchema.find({});
+    // Extract page and limit from query parameters, with defaults
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 5;
+    const skip = (page - 1) * limit;
 
+    // Fetch total counts for both schemas
+    const totalPdfCount = await PdfSchema.countDocuments();
+    const totalImageCount = await ImageSchema.countDocuments();
+    const totalFiles = totalPdfCount + totalImageCount;
+
+    // Determine total pages
+    const totalPages = Math.ceil(totalFiles / limit);
+
+    // Fetch combined paginated data
+    const pdfLimit = Math.min(limit, totalPdfCount - skip); // PDFs to fetch
+    const imageLimit = limit - pdfLimit; // Remaining limit for images
+
+    const pdfData = await PdfSchema.find().skip(skip).limit(pdfLimit);
+
+    const imageData = await ImageSchema.find()
+      .skip(skip - totalPdfCount > 0 ? skip - totalPdfCount : 0)
+      .limit(imageLimit);
+
+    // Map file URLs
     const pdfsWithUrl = pdfData.map((pdf) => ({
       ...pdf._doc,
       fileUrl: `${req.protocol}://${req.get("host")}/files/${pdf.pdf}`,
@@ -47,7 +68,10 @@ const getFiles = async (req, res, next) => {
       fileUrl: `${req.protocol}://${req.get("host")}/files/${image.image}`,
     }));
 
-    res.status(200).json({ pdfData: pdfsWithUrl, imageData: imagesWithUrl });
+    // Combine data
+    const files = [...pdfsWithUrl, ...imagesWithUrl];
+
+    res.status(200).json({ files, totalPages, currentPage: page });
   } catch (error) {
     next(error);
   }

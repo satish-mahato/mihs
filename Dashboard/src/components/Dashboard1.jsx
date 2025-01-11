@@ -4,29 +4,34 @@ import { Document, Page } from "react-pdf";
 
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [editingFile, setEditingFile] = useState(null);
   const [newTitle, setNewTitle] = useState("");
   const [uploadType, setUploadType] = useState("file");
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState({ url: "", type: "" });
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(null);
 
-  // Loading and error states
   const [loading, setLoading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
 
   useEffect(() => {
-    loadFiles();
-  }, []);
+    loadFiles(currentPage);
+  }, [currentPage]);
 
-  const loadFiles = async () => {
+  const loadFiles = async (page = 1) => {
     setLoading(true);
     try {
-      const { data } = await axios.get("http://localhost:5000/api/get-files");
-      setFiles([...data.pdfData, ...data.imageData]);
+      const { data } = await axios.get(
+        `http://localhost:5000/api/get-files?page=${page}`
+      );
+      setFiles(data.files);
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.currentPage);
     } catch (error) {
       console.error("Error fetching files:", error);
     } finally {
@@ -39,7 +44,7 @@ const Dashboard = () => {
       await axios.delete(
         `http://localhost:5000/api/delete-file/${category}/${id}`
       );
-      loadFiles();
+      loadFiles(currentPage);
     } catch (error) {
       console.error("Error deleting file:", error);
     }
@@ -51,7 +56,7 @@ const Dashboard = () => {
         title: newTitle,
       });
       setEditingFile(null);
-      loadFiles();
+      loadFiles(currentPage);
     } catch (error) {
       console.error("Error updating file:", error);
     }
@@ -69,16 +74,16 @@ const Dashboard = () => {
       formData.append("image", e.target.image.files[0]);
     }
 
-    setUploadError(null); // Reset error message on new upload attempt
+    setUploadError(null);
     setLoading(true);
 
     try {
       await axios.post("http://localhost:5000/api/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      loadFiles();
+      loadFiles(currentPage);
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error uploading file:", error);
       setUploadError("Failed to upload file. Please try again.");
     } finally {
       setLoading(false);
@@ -93,12 +98,12 @@ const Dashboard = () => {
   const handleCloseModal = () => {
     setModalVisible(false);
     setModalContent({ url: "", type: "" });
-    setPageNumber(1); // Reset page number when closing modal
+    setPageNumber(1);
   };
 
-  function onDocumentLoadSuccess({ numPages }) {
+  const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
-  }
+  };
 
   return (
     <div className="p-8 bg-gradient-to-r from-blue-100 to-blue-300 min-h-screen">
@@ -114,7 +119,6 @@ const Dashboard = () => {
         <h2 className="text-xl font-semibold text-gray-700 mb-4">
           Upload a New File
         </h2>
-
         <div className="mb-4">
           <label htmlFor="title" className="block text-gray-700 font-medium">
             Title
@@ -127,7 +131,6 @@ const Dashboard = () => {
             required
           />
         </div>
-
         <div className="mb-4">
           <label htmlFor="category" className="block text-gray-700 font-medium">
             Category
@@ -140,8 +143,6 @@ const Dashboard = () => {
             required
           />
         </div>
-
-        {/* Radio buttons for file type */}
         <div className="mb-4">
           <p className="font-medium text-gray-700">
             Choose file type to upload:
@@ -169,30 +170,18 @@ const Dashboard = () => {
             Image
           </label>
         </div>
-
-        {/* Conditional file input */}
         <div className="mb-4">
-          {uploadType === "file" ? (
-            <input
-              name="file"
-              type="file"
-              className="p-2 border rounded w-full"
-            />
-          ) : (
-            <input
-              name="image"
-              type="file"
-              className="p-2 border rounded w-full"
-            />
-          )}
+          <input
+            name={uploadType}
+            type="file"
+            className="p-2 border rounded w-full"
+            required
+          />
         </div>
-
-        {/* Displaying loading state and error message */}
         {loading && (
           <div className="text-center text-blue-500">Uploading...</div>
         )}
         {uploadError && <div className="text-red-500">{uploadError}</div>}
-
         <button
           type="submit"
           className="bg-blue-500 text-white p-3 rounded-full w-full mt-4"
@@ -201,7 +190,7 @@ const Dashboard = () => {
         </button>
       </form>
 
-      {/* Files Table */}
+      {/* File Table */}
       <table className="w-full bg-white shadow-lg rounded-lg">
         <thead>
           <tr className="bg-gray-200 text-left">
@@ -238,7 +227,9 @@ const Dashboard = () => {
               <td className="p-4 flex items-center space-x-2">
                 {editingFile === file._id ? (
                   <button
-                    onClick={() => handleEdit(file.category, file._id)}
+                    onClick={() =>
+                      handleEdit(file.category, file._id, newTitle)
+                    }
                     className="bg-yellow-500 text-white px-4 py-2 rounded"
                   >
                     Save
@@ -263,7 +254,30 @@ const Dashboard = () => {
         </tbody>
       </table>
 
-      {/* Modal for Viewing PDF or Image */}
+      {/* Pagination */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="bg-gray-300 px-4 py-2 rounded mr-2"
+        >
+          Previous
+        </button>
+        <span className="text-gray-700 px-4 py-2">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          disabled={currentPage === totalPages}
+          className="bg-gray-300 px-4 py-2 rounded ml-2"
+        >
+          Next
+        </button>
+      </div>
+
+      {/* Modal for Viewing Files */}
       {modalVisible && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
@@ -276,8 +290,6 @@ const Dashboard = () => {
             >
               X
             </button>
-
-            {/* Render PDF */}
             {modalContent.type === "pdf" ? (
               <div>
                 <Document
@@ -290,14 +302,16 @@ const Dashboard = () => {
                   Page {pageNumber} of {numPages}
                 </p>
                 <button
-                  onClick={() => setPageNumber(pageNumber - 1)}
+                  onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
                   disabled={pageNumber <= 1}
                   className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() => setPageNumber(pageNumber + 1)}
+                  onClick={() =>
+                    setPageNumber((prev) => Math.min(prev + 1, numPages))
+                  }
                   disabled={pageNumber >= numPages}
                   className="bg-blue-500 text-white px-4 py-2 rounded mt-4 ml-4"
                 >

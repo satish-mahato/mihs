@@ -26,7 +26,7 @@ const Login = () => {
         localStorage.setItem("token", res.data.token);
         setUser(res.data.user);
 
-        navigate("/gallery");
+        navigate("/");
       })
       .catch((err) => {
         console.error(err.response?.data); // Check backend response
