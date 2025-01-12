@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Document, Page } from "react-pdf";
+import { pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [editingFile, setEditingFile] = useState(null);
   const [newTitle, setNewTitle] = useState("");
   const [uploadType, setUploadType] = useState("file");
-
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState({ url: "", type: "" });
+  const [selectedPdf, setSelectedPdf] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [numPages, setNumPages] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [modalContent, setModalContent] = useState(null);
 
   useEffect(() => {
     loadFiles(currentPage);
@@ -90,19 +90,32 @@ const Dashboard = () => {
     }
   };
 
-  const handleView = (url, type) => {
-    setModalContent({ url, type });
-    setModalVisible(true);
+  const handleView = (file) => {
+    console.log("File being viewed:", file);
+
+    // Determine the file type based on the category or file extension
+    const fileType = file.fileUrl.endsWith(".pdf") ? "pdf" : "image";
+
+    if (fileType === "pdf") {
+      setSelectedPdf(file.fileUrl);
+      setModalContent(null); // Clear any previous content
+    } else {
+      setSelectedPdf(null);
+      setModalContent({ url: file.fileUrl, type: "image" }); // Set modal content for non-PDF files
+    }
+
+    setModalVisible(true); // Show the modal
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
-    setModalContent({ url: "", type: "" });
+    setSelectedPdf(null);
     setPageNumber(1);
   };
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
+    setPageNumber(1);
   };
 
   return (
@@ -218,7 +231,7 @@ const Dashboard = () => {
               <td className="p-4">{file.category}</td>
               <td className="p-4">
                 <button
-                  onClick={() => handleView(file.fileUrl, file.type)}
+                  onClick={() => handleView(file)}
                   className="text-blue-500 underline"
                 >
                   View
@@ -279,55 +292,81 @@ const Dashboard = () => {
 
       {/* Modal for Viewing Files */}
       {modalVisible && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-          onClick={handleCloseModal}
-        >
-          <div className="bg-white p-8 rounded-lg relative max-w-4xl w-full">
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2"
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+    onClick={handleCloseModal}
+  >
+    <div
+      className="bg-white p-4 rounded-lg relative max-w-xl w-full overflow-hidden"
+      onClick={(e) => e.stopPropagation()} // Prevent modal from closing when clicking inside
+    >
+      {/* Close Button */}
+      <button
+        onClick={handleCloseModal}
+        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 z-50 hover:bg-red-600 transition duration-300"
+      >
+        ✕
+      </button>
+
+      {selectedPdf ? (
+        // PDF Viewer
+        <div className="flex flex-col items-center">
+          <div
+            className="overflow-auto max-h-[70vh] w-full border rounded shadow-sm no-scrollbar"
+          >
+            <Document
+              file={selectedPdf}
+              onLoadSuccess={onDocumentLoadSuccess}
+              className="flex justify-center"
             >
-              X
-            </button>
-            {modalContent.type === "pdf" ? (
-              <div>
-                <Document
-                  file={modalContent.url}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                >
-                  <Page pageNumber={pageNumber} />
-                </Document>
-                <p>
-                  Page {pageNumber} of {numPages}
-                </p>
-                <button
-                  onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
-                  disabled={pageNumber <= 1}
-                  className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setPageNumber((prev) => Math.min(prev + 1, numPages))
-                  }
-                  disabled={pageNumber >= numPages}
-                  className="bg-blue-500 text-white px-4 py-2 rounded mt-4 ml-4"
-                >
-                  Next
-                </button>
-              </div>
-            ) : (
-              <img
-                src={modalContent.url}
-                alt="File Preview"
-                className="w-full h-auto"
-              />
-            )}
+              <Page pageNumber={pageNumber} renderMode="canvas" />
+            </Document>
           </div>
+          <p className="mt-2 text-sm">
+            Page {pageNumber} of {numPages}
+          </p>
+          {numPages > 1 && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
+                disabled={pageNumber <= 1}
+                className={`bg-blue-500 text-white px-4 py-2 rounded ${
+                  pageNumber <= 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+                } transition duration-300`}
+              >
+                Previous Page
+              </button>
+              <button
+                onClick={() => setPageNumber((prev) => Math.min(prev + 1, numPages))}
+                disabled={pageNumber >= numPages}
+                className={`bg-blue-500 text-white px-4 py-2 rounded ml-2 ${
+                  pageNumber >= numPages ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+                } transition duration-300`}
+              >
+                Next Page
+              </button>
+            </div>
+          )}
         </div>
+      ) : modalContent ? (
+        // Image Viewer
+        <div>
+          {modalContent.type === "image" && (
+            <img
+              src={modalContent.url}
+              alt="Preview"
+              className="w-full rounded-lg shadow-md"
+            />
+          )}
+        </div>
+      ) : (
+        // Fallback for No Content
+        <p className="text-center text-gray-500">No content to display</p>
       )}
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

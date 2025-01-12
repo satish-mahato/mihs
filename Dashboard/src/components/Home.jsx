@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+
 const Home = () => {
+ 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center">
@@ -40,6 +42,14 @@ const Home = () => {
               className="text-blue-500 hover:underline hover:text-blue-400"
             >
               Paging (Protected)
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/pdf"
+              className="text-blue-500 hover:underline hover:text-blue-400"
+            >
+              pdf (Protected)
             </Link>
           </li>
         </ul>

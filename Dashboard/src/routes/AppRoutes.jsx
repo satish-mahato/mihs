@@ -6,6 +6,7 @@ import Login from "../components/Login";
 import Register from "./../components/Register";
 import Paging from "../components/Paging";
 import Home from "../components/Home"; // Import the Home component
+import FilesByCategory from "../components/FilesByCategory";
 
 const AppRoutes = () => {
   return (
@@ -27,6 +28,14 @@ const AppRoutes = () => {
           element={
             <UserAuth>
               <Paging />
+            </UserAuth>
+          }
+        />
+        <Route
+          path="/pdf"
+          element={
+            <UserAuth>
+              <FilesByCategory category="pdf"/>
             </UserAuth>
           }
         />
