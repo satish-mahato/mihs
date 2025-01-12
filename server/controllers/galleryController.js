@@ -13,7 +13,7 @@ const uploadGalleryFiles = async (req, res, next) => {
 
     const files = req.files.map((file) => ({
       fileName: file.originalname,
-      filePath: file.path,
+      filePath: `files/${file.filename}`,
     }));
 
     const fileRecord = new GalleryImg({ title, date, files });
@@ -85,7 +85,7 @@ const getGalleryFiles = async (req, res, next) => {
       return res.status(200).json({ data: galleryRecord });
     }
 
-    const galleryRecords = await GalleryImg.find();
+    const galleryRecords = await GalleryImg.find().sort({ createdAt: -1 }); // Sort by createdAt in descending order
     res.status(200).json({ data: galleryRecords });
   } catch (err) {
     next(err);
@@ -127,7 +127,7 @@ const deleteGalleryFiles = async (req, res, next) => {
 
 const getAllGalleryFiles = async (req, res, next) => {
   try {
-    const galleryRecords = await GalleryImg.find();
+    const galleryRecords = await GalleryImg.find().sort({ createdAt: -1 }); // Sort by createdAt in descending order
     const allFiles = galleryRecords.flatMap((record) => record.files);
 
     res.status(200).json({

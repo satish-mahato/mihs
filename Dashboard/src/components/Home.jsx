@@ -46,10 +46,18 @@ const Home = () => {
           </li>
           <li>
             <Link
-              to="/pdf"
+              to="/gallery"
               className="text-blue-500 hover:underline hover:text-blue-400"
             >
-              pdf (Protected)
+              Gallery
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/gallerylist"
+              className="text-blue-500 hover:underline hover:text-blue-400"
+            >
+              Gallery List
             </Link>
           </li>
         </ul>

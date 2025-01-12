@@ -6,7 +6,9 @@ import Login from "../components/Login";
 import Register from "./../components/Register";
 import Paging from "../components/Paging";
 import Home from "../components/Home"; // Import the Home component
-import FilesByCategory from "../components/FilesByCategory";
+import GalleryPage from "../components/Gallery";
+import GalleryPageList from "../components/GalleryList";
+import GalleryList from "../components/GalleryList";
 
 const AppRoutes = () => {
   return (
@@ -32,10 +34,18 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/pdf"
+          path="/gallery"
           element={
             <UserAuth>
-              <FilesByCategory category="pdf"/>
+              <GalleryPage />
+            </UserAuth>
+          }
+        />
+        <Route
+          path="/gallerylist"
+          element={
+            <UserAuth>
+              <GalleryList/>
             </UserAuth>
           }
         />

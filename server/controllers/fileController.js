@@ -34,12 +34,15 @@ const uploadFiles = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ message: "Files uploaded successfully and sorted by latest upload time" });
+    res
+      .status(201)
+      .json({
+        message: "Files uploaded successfully and sorted by latest upload time",
+      });
   } catch (error) {
     next(error);
   }
 };
-
 
 const getFiles = async (req, res, next) => {
   try {
@@ -56,13 +59,17 @@ const getFiles = async (req, res, next) => {
     // Determine total pages
     const totalPages = Math.ceil(totalFiles / limit);
 
-    // Fetch combined paginated data
+    // Fetch combined paginated data with sorting
     const pdfLimit = Math.min(limit, totalPdfCount - skip); // PDFs to fetch
     const imageLimit = limit - pdfLimit; // Remaining limit for images
 
-    const pdfData = await PdfSchema.find().skip(skip).limit(pdfLimit);
+    const pdfData = await PdfSchema.find()
+      .sort({ createdAt: -1 }) // Sort PDFs by latest
+      .skip(skip)
+      .limit(pdfLimit);
 
     const imageData = await ImageSchema.find()
+      .sort({ createdAt: -1 }) // Sort images by latest
       .skip(skip - totalPdfCount > 0 ? skip - totalPdfCount : 0)
       .limit(imageLimit);
 
