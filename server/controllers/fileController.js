@@ -5,17 +5,25 @@ const fs = require("fs");
 const uploadFiles = async (req, res, next) => {
   try {
     const { title, category } = req.body;
-    const uploadTime = new Date();
+    const uploadTime = new Date(); // Timestamp for sorting
 
+    // Validate required fields
     if (!title || !category) {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
+    // Handle file uploads for PDFs
     if (req.files.file) {
       const fileName = req.files.file[0].filename;
-      await PdfSchema.create({ title, category, uploadTime, pdf: fileName });
+      await PdfSchema.create({
+        title,
+        category,
+        uploadTime,
+        pdf: fileName,
+      });
     }
 
+    // Handle file uploads for Images
     if (req.files.image) {
       const imageName = req.files.image[0].filename;
       await ImageSchema.create({
@@ -26,11 +34,12 @@ const uploadFiles = async (req, res, next) => {
       });
     }
 
-    res.status(201).json({ message: "Files uploaded successfully" });
+    res.status(201).json({ message: "Files uploaded successfully and sorted by latest upload time" });
   } catch (error) {
     next(error);
   }
 };
+
 
 const getFiles = async (req, res, next) => {
   try {
