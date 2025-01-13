@@ -3,6 +3,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   email: {
     type: String,
     required: true,
@@ -27,9 +32,15 @@ userSchema.methods.isValidPassword = async function (password) {
 };
 
 userSchema.methods.generateJWT = function () {
-  return jwt.sign({ email: this.email }, process.env.JWT_SECRET, {
-    expiresIn: "24h",
-  });
+  return jwt.sign(
+    {
+      id: this._id,
+      name: this.name,
+      email: this.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "24h" }
+  );
 };
 
 const User = mongoose.model("user", userSchema);
