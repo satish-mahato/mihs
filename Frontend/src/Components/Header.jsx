@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const Header = () => {
+const Header3 = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -130,4 +130,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default Header3;
