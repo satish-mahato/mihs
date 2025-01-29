@@ -1,5 +1,5 @@
-const GalleryImg = require("../models/GalleryImg");
-const { ERROR_MESSAGES } = require("../utils/errorMessages");
+const GalleryImg = require("../models/galleryImg.js");
+const { ERROR_MESSAGES } = require("../utils/errorMessages.js");
 const fs = require("fs/promises");
 const path = require("path");
 

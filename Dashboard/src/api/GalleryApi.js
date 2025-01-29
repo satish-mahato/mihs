@@ -1,14 +1,38 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api"; // Update with your backend URL
+const API_BASE = "https://auth.sm12.com.np/api"; // Update with your backend URL
 
+// Create an Axios instance
+const axiosInstance = axios.create({
+  baseURL: API_BASE,
+});
+
+// Add a request interceptor
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Add Authorization header to all requests except GET
+    if (config.method !== "get") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    // Handle request error
+    return Promise.reject(error);
+  }
+);
+
+// Export functions
 export const uploadGalleryFiles = async (formData) =>
-  axios.post(`${API_BASE}/gallery`, formData);
+  axiosInstance.post(`/gallery`, formData);
 
-export const getGalleryFiles = async () => axios.get(`${API_BASE}/gallery`);
+export const getGalleryFiles = async () => axiosInstance.get(`/gallery`);
 
 export const editGalleryFiles = async (id, formData) =>
-  axios.put(`${API_BASE}/gallery/${id}`, formData);
+  axiosInstance.put(`/gallery/${id}`, formData);
 
 export const deleteGalleryFiles = async (id) =>
-  axios.delete(`${API_BASE}/gallery/${id}`);
+  axiosInstance.delete(`/gallery/${id}`);

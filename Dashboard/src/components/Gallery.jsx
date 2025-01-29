@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import BikramSambat, { ADToBS } from "bikram-sambat-js"; // Import ADToBS
 import {
   uploadGalleryFiles,
   getGalleryFiles,
@@ -110,43 +111,50 @@ const GalleryPage = () => {
 
       {/* Gallery List */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {gallery.map((record) => (
-          <div
-            key={record._id}
-            className="p-4 border rounded shadow hover:shadow-lg"
-          >
-            <h2 className="font-bold">{record.title}</h2>
-            <p className="text-sm text-gray-600">Date: {record.date}</p>
-            <ul className="mt-2">
-              {record.files.map((file, idx) => (
-                <li key={idx}>
-                  <a
-                    href={`http://localhost:5000/${file.filePath}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500"
-                  >
-                    {file.fileName}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-4 flex justify-between">
-              <button
-                onClick={() => handleEdit(record)}
-                className="bg-yellow-500 text-white py-1 px-3 rounded hover:bg-yellow-700"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(record._id)}
-                className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700"
-              >
-                Delete
-              </button>
+        {gallery.map((record) => {
+          // Convert Gregorian date to Nepali (Bikram Sambat) date
+          const nepaliDate = ADToBS(record.date);
+
+          return (
+            <div
+              key={record._id}
+              className="p-4 border rounded shadow hover:shadow-lg"
+            >
+              <h2 className="font-bold">{record.title}</h2>
+              <p className="text-sm text-gray-600">
+                Date: {nepaliDate}
+              </p>
+              <ul className="mt-2">
+                {record.files.map((file, idx) => (
+                  <li key={idx}>
+                    <a
+                      href={`https://auth.sm12.com.np/${file.filePath}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500"
+                    >
+                      {file.fileName}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 flex justify-between">
+                <button
+                  onClick={() => handleEdit(record)}
+                  className="bg-yellow-500 text-white py-1 px-3 rounded hover:bg-yellow-700"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(record._id)}
+                  className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

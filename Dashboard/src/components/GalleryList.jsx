@@ -9,7 +9,9 @@ const GalleryList = () => {
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/gallery");
+        const response = await axios.get(
+          "https://auth.sm12.com.np/api/gallery"
+        );
         setGalleryRecords(response.data.data);
         setLoading(false);
       } catch (err) {
@@ -42,7 +44,7 @@ const GalleryList = () => {
                 {record.title}
               </h2>
               <p className="text-lg text-gray-500">
-                Date: {new Date(record.date).toLocaleDateString()}
+                Date: {new Date(record.date).toISOString().split("T")[0]}
               </p>
             </div>
 
@@ -54,15 +56,10 @@ const GalleryList = () => {
                   className="relative group rounded-lg overflow-hidden shadow-md transition-transform transform hover:scale-105"
                 >
                   <img
-                    src={`http://localhost:5000/${file.filePath}`}
+                    src={`https://auth.sm12.com.np/${file.filePath}`}
                     alt={file.fileName}
                     className="w-full h-60 object-cover"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <p className="text-white text-lg font-semibold">
-                      {file.fileName}
-                    </p>
-                  </div>
                 </div>
               ))}
             </div>

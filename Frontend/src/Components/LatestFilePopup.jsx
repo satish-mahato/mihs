@@ -1,84 +1,255 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useState, useEffect, useRef } from "react";
+import { Document, Page, pdfjs } from "react-pdf";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  XMarkIcon,
+  ArrowDownTrayIcon,
+} from "@heroicons/react/24/outline";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
 
-const LatestFilePopup = ({ category, onClose }) => {
-  const [latestPdf, setLatestPdf] = useState(null);
-  const [latestImage, setLatestImage] = useState(null);
-  const [error, setError] = useState("");
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+const PopUpModal = ({
+  file: propFile,
+  open: propOpen,
+  onClose: propOnClose,
+}) => {
+  const isControlled = propFile !== undefined;
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [latestNotice, setLatestNotice] = useState(null);
+  const [numPages, setNumPages] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(300); // Smaller default width for mobile
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const basePath = "https://auth.sm12.com.np/files/";
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/files-by-category/${category}`
-        );
-        const pdfData = response.data.pdfData;
-        const imageData = response.data.imageData;
+    if (!isControlled) {
+      const fetchLatestNotice = async () => {
+        try {
+          const response = await fetch(
+            "https://auth.sm12.com.np/file/files-by-category/notice"
+          );
+          const data = await response.json();
+          const allNotices = [...data.pdfs, ...data.images]
+            .filter((notice) => notice.uploadTime)
+            .sort((a, b) => new Date(b.uploadTime) - new Date(a.uploadTime));
 
-        // Get the latest items
-        setLatestPdf(pdfData[pdfData.length - 1]);
-        setLatestImage(imageData[imageData.length - 1]);
+          if (allNotices.length > 0) {
+            const notice = allNotices[0];
+            setLatestNotice(notice);
+            setInternalIsOpen(true);
+          }
+        } catch (error) {
+          console.error("Error fetching notices:", error);
+        }
+      };
+      fetchLatestNotice();
+    }
+  }, [isControlled]);
 
-        // Auto-close the popup after 5 seconds
-        setTimeout(onClose, 5000);
-      } catch (err) {
-        setError("Failed to fetch data. Please try again.");
-        setTimeout(onClose, 5000); // Close even on error
-      }
-    };
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0].contentRect.width;
+      setContainerWidth(width > 0 ? width : 300);
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
-    fetchData();
-  }, [category, onClose]);
+  const selectedFile = isControlled
+    ? propFile
+    : latestNotice && {
+        url: latestNotice.pdf
+          ? `${basePath}${latestNotice.pdf}`
+          : `${basePath}${latestNotice.image}`,
+        type: latestNotice.pdf ? "pdf" : "image",
+        title: latestNotice.title,
+      };
 
-  if (!latestPdf && !latestImage && !error) return null; // Don't show anything until data is loaded
+  const isOpen = isControlled ? propOpen : internalIsOpen;
+
+  const closeModal = () => {
+    isControlled ? propOnClose() : setInternalIsOpen(false);
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }) => {
+    setIsLoading(false);
+    setHasError(false);
+    setNumPages(numPages);
+    setPageNumber(1);
+  };
+
+  const onDocumentLoadError = (error) => {
+    console.error("PDF load error:", error);
+    setIsLoading(false);
+    setHasError(true);
+  };
+
+  const goToPrevPage = () => setPageNumber((p) => Math.max(1, p - 1));
+  const goToNextPage = () => setPageNumber((p) => Math.min(numPages, p + 1));
+
+  const handleDownload = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
+  const handlePdfDownload = () => {
+    handleDownload(selectedFile.url, selectedFile.title || "document.pdf");
+  };
+
+  const handleImageDownload = () => {
+    handleDownload(selectedFile.url, selectedFile.title || "image.jpg");
+  };
+
+  if (!isOpen || !selectedFile) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-sm z-50">
-      <div>
-        <h2 className="text-xl font-bold mb-2 text-gray-800">Latest Files</h2>
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-[9999] p-2 sm:p-4">
+      <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-h-[95vh] overflow-hidden mx-2 sm:mx-4 sm:max-w-4xl">
+        <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
+          <h2 className="text-base sm:text-xl font-semibold break-words max-w-[80%]">
+            {selectedFile.title || "Notice"}
+          </h2>
+          <button
+            onClick={closeModal}
+            className="p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+          </button>
+        </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <div className="flex-1 overflow-auto p-2 sm:p-4">
+          {selectedFile.type === "pdf" ? (
+            <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+              <div
+                ref={containerRef}
+                className="border-2 border-gray-100 rounded-xl w-full bg-gray-50 relative min-h-[200px] sm:min-h-[300px]"
+              >
+                {isLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3 bg-gray-50/90">
+                    <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-4 border-b-4 border-blue-600" />
+                    <p className="text-sm sm:text-base text-gray-600 font-medium">
+                      Loading PDF...
+                    </p>
+                  </div>
+                )}
+                {hasError && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3 p-2 sm:p-4 bg-white/90">
+                    <XMarkIcon className="w-8 h-8 sm:w-12 sm:h-12 text-red-500" />
+                    <p className="text-sm sm:text-base text-red-600 text-center font-medium">
+                      Failed to load PDF. Please try again or download the file.
+                    </p>
+                  </div>
+                )}
 
-        {latestPdf && (
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-700">Latest PDF</h3>
-            <p className="text-sm text-gray-600">{latestPdf.name}</p>
-            <a
-              href={latestPdf.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 text-sm hover:underline"
-            >
-              View PDF
-            </a>
-          </div>
-        )}
+                <Document
+                  file={selectedFile.url}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
+                  key={selectedFile.url}
+                  loading={
+                    <div className="flex justify-center p-4 sm:p-8">
+                      <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-4 border-b-4 border-blue-600" />
+                    </div>
+                  }
+                >
+                  {containerWidth > 0 && (
+                    <Page
+                      key={`page-${containerWidth}`}
+                      pageNumber={pageNumber}
+                      width={containerWidth}
+                      className="w-full"
+                      renderAnnotationLayer={false}
+                      renderTextLayer={false}
+                    />
+                  )}
+                </Document>
+              </div>
 
-        {latestImage && (
-          <div>
-            <h3 className="font-semibold text-gray-700">Latest Image</h3>
-            <p className="text-sm text-gray-600">{latestImage.title}</p>
-            <a
-              href={latestImage.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-500 text-sm hover:underline"
-            >
-              View Image
-            </a>
-          </div>
-        )}
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full">
+                {numPages > 1 && (
+                  <div className="flex items-center gap-3 sm:gap-4 bg-gray-50 px-3 py-1 sm:px-4 sm:py-2 rounded-lg">
+                    <button
+                      onClick={goToPrevPage}
+                      disabled={pageNumber <= 1}
+                      className="p-1 sm:p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                    </button>
+                    <p className="text-sm sm:text-base text-gray-600 font-medium min-w-[80px] sm:min-w-[100px] text-center">
+                      Page {pageNumber} of {numPages}
+                    </p>
+                    <button
+                      onClick={goToNextPage}
+                      disabled={pageNumber >= numPages}
+                      className="p-1 sm:p-2 hover:bg-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ArrowRightIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={handlePdfDownload}
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg transition-colors font-medium shadow-sm text-sm sm:text-base"
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Download PDF</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+              <div className="relative w-full bg-gray-50 rounded-xl border-2 border-gray-100 max-h-[70vh]">
+                {!imgLoaded && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                    <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-4 border-b-4 border-blue-600" />
+                    <p className="text-sm sm:text-base text-gray-600 font-medium">
+                      Loading Image...
+                    </p>
+                  </div>
+                )}
+                <img
+                  src={selectedFile.url}
+                  alt="Preview"
+                  className="w-full h-full object-contain rounded-lg max-h-[70vh]"
+                  onLoad={() => setImgLoaded(true)}
+                  onError={() => setImgLoaded(false)}
+                />
+              </div>
+
+              <button
+                onClick={handleImageDownload}
+                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg transition-colors font-medium shadow-sm text-sm sm:text-base"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Download Image</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-      >
-        ✖
-      </button>
     </div>
   );
 };
 
-export default LatestFilePopup;
+export default PopUpModal;

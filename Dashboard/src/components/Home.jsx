@@ -57,7 +57,7 @@ const Home = () => {
               to="/home"
               className="text-blue-500 hover:underline hover:text-blue-400"
             >
-              Dashboard (Protected)
+              Notice Board
             </Link>
           </li>
           <li>

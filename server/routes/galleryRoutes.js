@@ -1,19 +1,20 @@
 const express = require("express");
-const { upload, handleUploadErrors } = require("../middleware/multerConfig");
-const { validateRequestBody } = require("../utils/validationMiddleware");
+const { upload, handleUploadErrors } = require("../middleware/multerConfig.js");
+const { validateRequestBody } = require("../utils/validationMiddleware.js");
+const authMiddleware = require("../middleware/authMiddleware.js");
 const {
   uploadGalleryFiles,
   editGalleryFiles,
   getGalleryFiles,
   deleteGalleryFiles,
   getAllGalleryFiles,
-} = require("../controllers/galleryController");
+} = require("../controllers/galleryController.js");
 
 const router = express.Router();
 
 // Route for uploading gallery files
 router.post(
-  "/gallery",
+  "/gallery",authMiddleware.authUser,
   upload.array("files", 5), // Multer handles file uploads
   handleUploadErrors, // Middleware for handling upload errors
   validateRequestBody, // Validate request body after files are uploaded
@@ -22,7 +23,7 @@ router.post(
 
 // Route for editing gallery files
 router.put(
-  "/gallery/:id",
+  "/gallery/:id",authMiddleware.authUser,
   upload.array("files", 5), // Multer handles file uploads
   handleUploadErrors, // Middleware for handling upload errors
   validateRequestBody, // Validate request body after files are uploaded
@@ -33,7 +34,7 @@ router.put(
 router.get("/gallery/:id?", getGalleryFiles); // Optional ID for specific or all records
 
 // Route for deleting gallery files
-router.delete("/gallery/:id", deleteGalleryFiles); // Delete a specific record by ID
+router.delete("/gallery/:id",authMiddleware.authUser, deleteGalleryFiles); // Delete a specific record by ID
 
 router.get("gallery", getAllGalleryFiles);
 

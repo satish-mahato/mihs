@@ -1,4 +1,4 @@
-const { ERROR_MESSAGES } = require("./errorMessages");
+const { ERROR_MESSAGES } = require("./errorMessages.js");
 
 const validateRequestBody = (req, res, next) => {
   const { title, date } = req.body;

@@ -1,5 +1,5 @@
-const PdfSchema = require("../models/pdfDetails");
-const ImageSchema = require("../models/imageDetails");
+const PdfSchema = require("../models/pdfDetails.js");
+const ImageSchema = require("../models/imageDetails.js");
 const fs = require("fs");
 
 const uploadFiles = async (req, res, next) => {
