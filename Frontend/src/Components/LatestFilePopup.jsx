@@ -21,8 +21,7 @@ const PopUpModal = ({
   const [latestNotice, setLatestNotice] = useState(null);
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const containerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(300); // Smaller default width for mobile
+  const [pageWidth, setPageWidth] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -53,16 +52,6 @@ const PopUpModal = ({
     }
   }, [isControlled]);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      const width = entries[0].contentRect.width;
-      setContainerWidth(width > 0 ? width : 300);
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   const selectedFile = isControlled
     ? propFile
     : latestNotice && {
@@ -85,6 +74,16 @@ const PopUpModal = ({
     setNumPages(numPages);
     setPageNumber(1);
   };
+
+  const onPageLoadSuccess = (page) => {
+    const viewport = page.getViewport({ scale: 1 });
+    const maxWidth = window.innerWidth * 0.9 - 40; // Account for padding
+    setPageWidth(Math.min(viewport.width, maxWidth));
+  };
+
+  useEffect(() => {
+    setPageWidth(null);
+  }, [pageNumber]);
 
   const onDocumentLoadError = (error) => {
     console.error("PDF load error:", error);
@@ -124,7 +123,7 @@ const PopUpModal = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-[9999] p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-h-[95vh] overflow-hidden mx-2 sm:mx-4 sm:max-w-4xl">
+      <div className="bg-white rounded-xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden mx-2 sm:mx-4 w-fit max-w-[90vw]">
         <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
           <h2 className="text-base sm:text-xl font-semibold break-words max-w-[80%]">
             {selectedFile.title || "Notice"}
@@ -141,8 +140,8 @@ const PopUpModal = ({
           {selectedFile.type === "pdf" ? (
             <div className="flex flex-col items-center space-y-3 sm:space-y-4">
               <div
-                ref={containerRef}
-                className="border-2 border-gray-100 rounded-xl w-full bg-gray-50 relative min-h-[200px] sm:min-h-[300px]"
+                className="border-2 border-gray-100 rounded-xl bg-gray-50 relative min-h-[200px] sm:min-h-[300px]"
+                style={{ width: pageWidth ? `${pageWidth}px` : "auto" }}
               >
                 {isLoading && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3 bg-gray-50/90">
@@ -172,16 +171,14 @@ const PopUpModal = ({
                     </div>
                   }
                 >
-                  {containerWidth > 0 && (
-                    <Page
-                      key={`page-${containerWidth}`}
-                      pageNumber={pageNumber}
-                      width={containerWidth}
-                      className="w-full"
-                      renderAnnotationLayer={false}
-                      renderTextLayer={false}
-                    />
-                  )}
+                  <Page
+                    pageNumber={pageNumber}
+                    width={pageWidth}
+                    onLoadSuccess={onPageLoadSuccess}
+                    className="w-full"
+                    renderAnnotationLayer={false}
+                    renderTextLayer={false}
+                  />
                 </Document>
               </div>
 
@@ -219,7 +216,7 @@ const PopUpModal = ({
             </div>
           ) : (
             <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-              <div className="relative w-full bg-gray-50 rounded-xl border-2 border-gray-100 max-h-[70vh]">
+              <div className="relative bg-gray-50 rounded-xl border-2 border-gray-100 max-h-[70vh]">
                 {!imgLoaded && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                     <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-4 border-b-4 border-blue-600" />
