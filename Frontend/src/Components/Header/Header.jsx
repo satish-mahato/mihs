@@ -5,6 +5,7 @@ import "./Header.css";
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
@@ -20,13 +21,26 @@ const Header = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [menuOpen]);
 
   return (
     <header className="bg-gradient-to-b from-blue-100 to-blue-200 shadow-lg w-full fixed top-0 z-50">
       {/* Top Bar */}
-      <div className="bg-blue-900 text-white">
+      <div
+        className={`bg-blue-900 text-white transition-all duration-300 ${
+          isScrolled ? "opacity-0 h-0" : "opacity-100 h-auto"
+        }`}
+      >
         <div className="container mx-auto flex justify-between items-center px-4 py-2 text-sm">
           <div className="flex space-x-4 items-center">
             <a
@@ -66,23 +80,41 @@ const Header = () => {
       </div>
 
       {/* Main Header */}
-      <div className="container mx-auto flex justify-between items-center py-4 px-4">
+      <div
+        className={`container mx-auto flex justify-between items-center px-4 transition-all duration-300 ${
+          isScrolled ? "py-2" : "py-4"
+        }`}
+      >
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <a
+          href="#home"
+          onClick={closeMenu}
+          className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+        >
           <img
             src="/assets/logo.png"
             alt="Logo"
-            className="w-12 h-12 rounded-full border-2 border-blue-900 p-1"
+            className={`rounded-full border-4 border-white shadow-xl transform transition-all duration-300 ${
+              isScrolled ? "w-16 h-16 scale-90" : "w-24 h-24"
+            }`}
           />
-          <div className="block sm:block">
-            <h1 className="text-lg font-bold text-blue-900 sm:text-xl">
+          <div className="block">
+            <h1
+              className={`font-bold text-blue-900 transition-all duration-300 ${
+                isScrolled ? "text-sm md:text-lg" : "text-base md:text-xl"
+              }`}
+            >
               Madhesh Institute of Health Sciences
             </h1>
-            <p className="text-[0.7rem] text-blue-700 sm:text-xs">
+            <p
+              className={`text-blue-700 transition-all duration-300 ${
+                isScrolled ? "text-[10px] md:text-xs" : "text-xs md:text-sm"
+              }`}
+            >
               Janakpurdham, Madhesh Province, Nepal
             </p>
           </div>
-        </div>
+        </a>
 
         {/* Mobile Toggle Button */}
         <button

@@ -52,7 +52,6 @@ const SliderSection = () => {
             Guiding Excellence in Health Sciences
           </p>
         </div>
-
         <div className="relative group">
           <Swiper
             effect={"coverflow"}
@@ -128,18 +127,17 @@ const SliderSection = () => {
                 </div>
               </SwiperSlide>
             ))}
-
             {/* Custom Navigation Arrows */}
-            <div className="swiper-button-prev hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg hover:bg-blue-50 transition-colors">
+            <div className="swiper-button-prev absolute top-1/2 -translate-y-1/2 left-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-all duration-300 transform hover:scale-110">
               <FontAwesomeIcon
                 icon={faChevronLeft}
-                className="text-gray-700 text-lg"
+                className="text-gray-700 text-lg md:text-xl"
               />
             </div>
-            <div className="swiper-button-next hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg hover:bg-blue-50 transition-colors">
+            <div className="swiper-button-next absolute top-1/2 -translate-y-1/2 right-4 z-10 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-all duration-300 transform hover:scale-110">
               <FontAwesomeIcon
                 icon={faChevronRight}
-                className="text-gray-700 text-lg"
+                className="text-gray-700 text-lg md:text-xl"
               />
             </div>
           </Swiper>

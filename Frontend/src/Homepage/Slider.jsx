@@ -4,6 +4,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 const Slider = () => {
   const sliderContent = [
@@ -45,18 +47,18 @@ const Slider = () => {
   ];
 
   return (
-    <div className="relative w-full h-screen z-0 touch-pan-y">
+    <div className="relative w-full h-[50vh] md:h-[70vh] z-0 overflow-hidden">
       <Swiper
         modules={[A11y, Autoplay, Navigation, Pagination]}
         slidesPerView={1}
-        autoplay={{ delay: 5000, disableOnInteraction: true }}
+        autoplay={{ delay: 5000, disableOnInteraction: false }}
         loop={true}
-        speed={800}
+        speed={1000}
         navigation={{
           nextEl: ".swiper-button-next",
           prevEl: ".swiper-button-prev",
         }}
-        pagination={{ 
+        pagination={{
           clickable: true,
           dynamicBullets: true,
         }}
@@ -65,32 +67,28 @@ const Slider = () => {
         {sliderContent.map((item, i) => (
           <SwiperSlide key={i} className="relative">
             <div className="relative h-full w-full">
-              {/* Image container */}
+              {/* Image container with responsive positioning */}
               <div className="absolute inset-0 overflow-hidden">
                 <img
                   src={item.img}
                   alt={item.description}
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-cover object-top 
+                           md:object-center md:scale-100 
+                           transition-transform duration-1000 ease-in-out 
+                           transform hover:scale-105"
                   loading="lazy"
-                  style={{
-                    transform: 'translateZ(0)',
-                    touchAction: 'pan-y'
-                  }}
                 />
               </div>
-
+              
               {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+              
               {/* Content Container */}
-              <div className="absolute bottom-0 left-0 right-0 text-center text-white px-4 
-                pb-8 sm:pb-12 md:pb-16 lg:pb-24 xl:pb-32 space-y-4">
-                <h2 className="text-2xl font-bold mb-2 drop-shadow-2xl
-                  sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl animate-fade-in-up">
+              <div className="absolute bottom-0 left-0 right-0 text-center text-white px-4 pb-4 sm:pb-8 md:pb-12 lg:pb-16 xl:pb-24 space-y-2">
+                <h2 className="text-xl font-bold mb-1 drop-shadow-2xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl animate-fade-in-up">
                   {item.title}
                 </h2>
-                <p className="text-base max-w-2xl mx-auto opacity-95 font-medium
-                  sm:text-lg md:text-xl lg:text-2xl animate-fade-in-up delay-100">
+                <p className="text-sm max-w-xs mx-auto opacity-95 font-medium sm:max-w-sm sm:text-base md:text-lg lg:text-xl animate-fade-in-up delay-100">
                   {item.description}
                 </p>
               </div>
@@ -100,15 +98,24 @@ const Slider = () => {
       </Swiper>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between px-4 absolute top-1/2 -translate-y-1/2 w-full z-20">
-        <button className="swiper-button-prev bg-white/20 p-2 md:p-3 rounded-full backdrop-blur-sm 
-          hover:bg-white/30 transition-all scale-75 md:scale-100 active:scale-95">
-          {/* SVG arrow */}
+      <div className="flex justify-between px-2 md:px-4 absolute top-1/2 -translate-y-1/2 w-full z-20">
+        <button className="swiper-button-prev group p-1 md:p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-300 active:scale-95 sm:p-3">
+          <FontAwesomeIcon
+            icon={faChevronLeft}
+            className="text-gray-200 text-xs md:text-sm lg:text-xl group-hover:text-gray-50 transition-colors duration-300"
+          />
         </button>
-        <button className="swiper-button-next bg-white/20 p-2 md:p-3 rounded-full backdrop-blur-sm 
-          hover:bg-white/30 transition-all scale-75 md:scale-100 active:scale-95">
-          {/* SVG arrow */}
+        <button className="swiper-button-next group p-1 md:p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-300 active:scale-95 sm:p-3">
+          <FontAwesomeIcon
+            icon={faChevronRight}
+            className="text-gray-200 text-xs md:text-sm lg:text-xl group-hover:text-gray-50 transition-colors duration-300"
+          />
         </button>
+      </div>
+
+      {/* Pagination Bullets */}
+      <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 z-20">
+        <div className="swiper-pagination scale-75 md:scale-100"></div>
       </div>
     </div>
   );
