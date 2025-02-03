@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import DropdownMenu from "./DropdownMenu";
 import "./Header.css";
 
@@ -6,6 +7,7 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const menuRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
@@ -15,23 +17,39 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuOpen && !document.querySelector("nav").contains(e.target)) {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+
+      // Update header height CSS variable
+      const header = document.querySelector("header");
+      if (header) {
+        const height = header.offsetHeight;
+        document.documentElement.style.setProperty(
+          "--header-height",
+          `${height}px`
+        );
+      }
+    };
+
+    // Initial height measurement
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [menuOpen, isScrolled]); // Include dependencies
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
         closeMenu();
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
-    };
-    window.addEventListener("scroll", handleScroll);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("scroll", handleScroll);
     };
-  }, [menuOpen]);
+  }, []);
 
   return (
     <header className="bg-gradient-to-b from-blue-100 to-blue-200 shadow-lg w-full fixed top-0 z-50">
@@ -86,8 +104,8 @@ const Header = () => {
         }`}
       >
         {/* Logo */}
-        <a
-          href="#home"
+        <Link
+          to="/"
           onClick={closeMenu}
           className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
         >
@@ -114,7 +132,7 @@ const Header = () => {
               Janakpurdham, Madhesh Province, Nepal
             </p>
           </div>
-        </a>
+        </Link>
 
         {/* Mobile Toggle Button */}
         <button
@@ -126,6 +144,7 @@ const Header = () => {
 
         {/* Navigation Menu */}
         <nav
+          ref={menuRef}
           className={`${
             menuOpen ? "translate-x-0" : "translate-x-full"
           } lg:translate-x-0 fixed lg:static top-0 right-0 w-3/4 lg:w-auto h-screen lg:h-auto bg-blue-100 lg:bg-transparent shadow-xl lg:shadow-none z-50 transition-transform duration-300 ease-in-out`}
@@ -139,20 +158,20 @@ const Header = () => {
             </button>
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-6 mt-8 lg:mt-0 text-blue-900">
-              <a
-                href="#home"
+              <Link
+                to="/home"
                 className="hover:text-blue-500 transition-colors text-lg font-semibold"
                 onClick={closeMenu}
               >
                 Home
-              </a>
-              <a
-                href="#about"
+              </Link>
+              <Link
+                to="/about-us"
                 className="hover:text-blue-500 transition-colors text-lg font-semibold"
                 onClick={closeMenu}
               >
                 About Us
-              </a>
+              </Link>
 
               <div className="relative">
                 <button
@@ -166,20 +185,27 @@ const Header = () => {
                 )}
               </div>
 
-              <a
-                href="#notices"
+              <Link
+                to="/notices"
                 className="hover:text-blue-500 transition-colors text-lg font-semibold"
                 onClick={closeMenu}
               >
                 Notices
-              </a>
-              <a
-                href="#contact"
+              </Link>
+              <Link
+                to="/gallery"
+                className="hover:text-blue-500 transition-colors text-lg font-semibold"
+                onClick={closeMenu}
+              >
+                Gallery
+              </Link>
+              <Link
+                to="/contact-us"
                 className="hover:text-blue-500 transition-colors text-lg font-semibold"
                 onClick={closeMenu}
               >
                 Contact Us
-              </a>
+              </Link>
             </div>
 
             <div className="mt-auto lg:hidden flex space-x-4 justify-center py-8 border-t border-blue-200">

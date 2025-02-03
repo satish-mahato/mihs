@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import {
   ArrowLeftIcon,
@@ -16,6 +16,7 @@ const PopUpModal = ({
   open: propOpen,
   onClose: propOnClose,
 }) => {
+  const modalRef = useRef(null);
   const isControlled = propFile !== undefined;
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [latestNotice, setLatestNotice] = useState(null);
@@ -25,6 +26,7 @@ const PopUpModal = ({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const basePath = "https://auth.sm12.com.np/files/";
 
   useEffect(() => {
@@ -50,7 +52,7 @@ const PopUpModal = ({
       };
       fetchLatestNotice();
     }
-  }, [isControlled]);
+  }, [isControlled, setLatestNotice, setInternalIsOpen]);
 
   const selectedFile = isControlled
     ? propFile
@@ -64,9 +66,27 @@ const PopUpModal = ({
 
   const isOpen = isControlled ? propOpen : internalIsOpen;
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     isControlled ? propOnClose() : setInternalIsOpen(false);
-  };
+    setImgLoaded(false);
+    setImgError(false);
+  }, [isControlled, propOnClose]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        closeModal();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, closeModal]);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setIsLoading(false);
@@ -77,7 +97,7 @@ const PopUpModal = ({
 
   const onPageLoadSuccess = (page) => {
     const viewport = page.getViewport({ scale: 1 });
-    const maxWidth = window.innerWidth * 0.9 - 40; // Account for padding
+    const maxWidth = window.innerWidth * 0.8;
     setPageWidth(Math.min(viewport.width, maxWidth));
   };
 
@@ -123,7 +143,10 @@ const PopUpModal = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-[9999] p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden mx-2 sm:mx-4 w-fit max-w-[90vw]">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden mx-2 sm:mx-4 w-fit max-w-[90vw]"
+      >
         <div className="flex justify-between items-center p-3 sm:p-4 border-b sticky top-0 bg-white z-10">
           <h2 className="text-base sm:text-xl font-semibold break-words max-w-[80%]">
             {selectedFile.title || "Notice"}
@@ -131,6 +154,7 @@ const PopUpModal = ({
           <button
             onClick={closeModal}
             className="p-1 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Close modal"
           >
             <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
           </button>
@@ -164,7 +188,6 @@ const PopUpModal = ({
                   file={selectedFile.url}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
-                  key={selectedFile.url}
                   loading={
                     <div className="flex justify-center p-4 sm:p-8">
                       <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-4 border-b-4 border-blue-600" />
@@ -217,7 +240,7 @@ const PopUpModal = ({
           ) : (
             <div className="flex flex-col items-center space-y-3 sm:space-y-4">
               <div className="relative bg-gray-50 rounded-xl border-2 border-gray-100 max-h-[70vh]">
-                {!imgLoaded && (
+                {!imgLoaded && !imgError && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                     <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-4 border-b-4 border-blue-600" />
                     <p className="text-sm sm:text-base text-gray-600 font-medium">
@@ -225,12 +248,26 @@ const PopUpModal = ({
                     </p>
                   </div>
                 )}
+                {imgError && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 sm:space-y-3 p-2 sm:p-4 bg-white/90">
+                    <XMarkIcon className="w-8 h-8 sm:w-12 sm:h-12 text-red-500" />
+                    <p className="text-sm sm:text-base text-red-600 text-center font-medium">
+                      Failed to load image. Please try again or download the file.
+                    </p>
+                  </div>
+                )}
                 <img
                   src={selectedFile.url}
                   alt="Preview"
                   className="w-full h-full object-contain rounded-lg max-h-[70vh]"
-                  onLoad={() => setImgLoaded(true)}
-                  onError={() => setImgLoaded(false)}
+                  onLoad={() => {
+                    setImgLoaded(true);
+                    setImgError(false);
+                  }}
+                  onError={() => {
+                    setImgLoaded(false);
+                    setImgError(true);
+                  }}
                 />
               </div>
 

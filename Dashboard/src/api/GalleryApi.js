@@ -27,12 +27,21 @@ axiosInstance.interceptors.request.use(
 
 // Export functions
 export const uploadGalleryFiles = async (formData) =>
-  axiosInstance.post(`/gallery`, formData);
+  axiosInstance.post(`/gallery`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
-export const getGalleryFiles = async () => axiosInstance.get(`/gallery`);
+export const getGalleryFiles = async (id) =>
+  id ? axiosInstance.get(`/gallery/${id}`) : axiosInstance.get(`/gallery`);
 
 export const editGalleryFiles = async (id, formData) =>
-  axiosInstance.put(`/gallery/${id}`, formData);
+  axiosInstance.put(`/gallery/${id}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 export const deleteGalleryFiles = async (id) =>
   axiosInstance.delete(`/gallery/${id}`);

@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axiosInstance from "../config/profileapi.js";
+import axiosInstance from "../config/axios.js";
 import { UserContext } from "../context/user.context.jsx";
+import {
+  FaBullhorn,
+  FaImages,
+  FaList,
+  FaSignOutAlt,
+  FaSpinner,
+} from "react-icons/fa";
+import { GiPartyPopper } from "react-icons/gi";
 
 const Home = () => {
   const [userName, setUserName] = useState("");
@@ -10,24 +18,30 @@ const Home = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch user profile with authorization
     axiosInstance
       .get("/users/profile")
       .then((res) => {
-        setUserName(res.data.user.name);
+        
+        if (res.data && res.data.name) {
+          setUserName(res.data.name); // Access name directly from res.data
+        } else {
+          console.error("Invalid API response:", res.data);
+          setUserName("Guest"); // Fallback value
+        }
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
-        setLoading(false); // Stop loading even if there's an error
+        console.error("Failed to fetch profile:", err);
+        alert("Unable to load your profile. Please try again later.");
+        navigate("/login");
+        setLoading(false);
       });
-  }, []);
+  }, [navigate]);
 
   const logoutHandler = () => {
     axiosInstance
-      .get("/users/logout") // Use POST or GET based on your backend
+      .get("/users/logout")
       .then(() => {
-        // Clear user data and redirect to login page
         localStorage.removeItem("token");
         setUser(null);
         navigate("/login");
@@ -39,49 +53,61 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center">
-        {loading ? (
-          <h1 className="text-2xl font-bold text-white mb-6">
-            Loading your profile...
-          </h1>
-        ) : (
-          <h1 className="text-2xl font-bold text-white mb-6">
-            Welcome, {userName || "Guest"}!
-          </h1>
-        )}
-        <p className="text-gray-400 mb-4">Navigate to your desired page:</p>
-        <ul className="space-y-3">
-          <li>
-            <Link
-              to="/home"
-              className="text-blue-500 hover:underline hover:text-blue-400"
-            >
-              Notice Board
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/gallery"
-              className="text-blue-500 hover:underline hover:text-blue-400"
-            >
-              Gallery
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/gallerylist"
-              className="text-blue-500 hover:underline hover:text-blue-400"
-            >
-              Gallery List
-            </Link>
-          </li>
-        </ul>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex items-center justify-center p-4">
+      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl">
+        <div className="text-center mb-8">
+          <GiPartyPopper className="text-6xl text-yellow-400 mx-auto mb-4 animate-bounce" />
+          {loading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <FaSpinner className="animate-spin text-3xl text-white" />
+              <h1 className="text-xl font-semibold text-white">
+                Loading your profile...
+              </h1>
+            </div>
+          ) : (
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Welcome back, {userName || "Guest"}!
+            </h1>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <Link
+            to="/notice"
+            className="group flex flex-col items-center justify-center p-6 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+          >
+            <FaBullhorn className="text-4xl text-blue-400 mb-2 group-hover:text-blue-300" />
+            <span className="text-lg font-medium text-white">Notice Board</span>
+            <p className="text-sm text-gray-300 text-center mt-1">
+              Check latest updates
+            </p>
+          </Link>
+          <Link
+            to="/gallery"
+            className="group flex flex-col items-center justify-center p-6 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+          >
+            <FaImages className="text-4xl text-purple-400 mb-2 group-hover:text-purple-300" />
+            <span className="text-lg font-medium text-white">Gallery</span>
+            <p className="text-sm text-gray-300 text-center mt-1">
+              Explore memories
+            </p>
+          </Link>
+          <Link
+            to="/gallerylist"
+            className="group flex flex-col items-center justify-center p-6 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+          >
+            <FaList className="text-4xl text-green-400 mb-2 group-hover:text-green-300" />
+            <span className="text-lg font-medium text-white">Gallery List</span>
+            <p className="text-sm text-gray-300 text-center mt-1">
+              Manage collections
+            </p>
+          </Link>
+        </div>
         <button
           onClick={logoutHandler}
-          className="mt-6 w-full p-3 rounded bg-red-500 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg bg-red-500/90 hover:bg-red-600 transition-all duration-300 transform hover:scale-[1.02]"
         >
-          Logout
+          <FaSignOutAlt className="text-white" />
+          <span className="text-white font-medium">Logout</span>
         </button>
       </div>
     </div>

@@ -10,41 +10,41 @@ import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons
 const Slider = () => {
   const sliderContent = [
     {
-      img: "/assets/image1.jpg",
-      title: "Discover Nature",
-      description: "Explore the beauty of wild landscapes",
+      "img": "/assets/image1.jpg",
+      "title": "Inauguration of MIHS",
+      "description": "Celebrating the launch of a new era in healthcare excellence."
     },
     {
-      img: "/assets/image2.jpg",
-      title: "Mountain Adventures",
-      description: "Experience thrilling peaks",
+      "img": "/assets/image2.jpg",
+      "title": "क्यान्सर हेरचाह केन्द्र कार्यक्रम",
+      "description": "Empowering lives through advanced cancer care and support."
     },
     {
-      img: "/assets/image3.jpg",
-      title: "Ocean Wonders",
-      description: "Dive into blue mysteries",
+      "img": "/assets/image3.jpg",
+      "title": "क्यान्सर हेरचाह मा अन्तरक्रिया कार्यक्रम",
+      "description": "Fostering collaboration and innovation in cancer care."
     },
     {
-      img: "/assets/image4.jpg",
-      title: "Desert Magic",
-      description: "Witness golden horizons",
+      "img": "/assets/image4.jpg",
+      "title": "सुपर स्पेशलिटी अस्पतालमा ओटीको उद्घाटन",
+      "description": "Inaugurating state-of-the-art operation theaters for superior medical care."
     },
     {
-      img: "/assets/image5.jpg",
-      title: "Forest Secrets",
-      description: "Walk through ancient trees",
+      "img": "/assets/image5.jpg",
+      "title": "क्यान्सर हेरचाह केन्द्र कार्यक्रम",
+      "description": "Dedicated to providing compassionate and comprehensive cancer care."
     },
     {
-      img: "/assets/image6.jpg",
-      title: "City Lights",
-      description: "Feel urban energy",
+      "img": "/assets/image6.jpg",
+      "title": "क्यान्सर हेरचाह मा अन्तरक्रिया कार्यक्रम",
+      "description": "Enhancing patient care through interactive and innovative programs."
     },
     {
-      img: "/assets/image7.png",
-      title: "Night Sky",
-      description: "Marvel at cosmic wonders",
-    },
-  ];
+      "img": "/assets/image7.png",
+      "title": "Inauguration of MIHS",
+      "description": "Marking the beginning of a transformative journey in healthcare services."
+    }
+  ]
 
   return (
     <div className="relative w-full h-[50vh] md:h-[70vh] z-0 overflow-hidden">

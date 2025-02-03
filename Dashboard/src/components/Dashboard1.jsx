@@ -76,10 +76,6 @@ const Dashboard = () => {
     // Update modal content
     setModalContent({ url: fullUrl, type: fileType });
     setModalVisible(true);
-
-    // Debugging logs
-    console.log("Viewing file:", file);
-    console.log("Full File URL:", fullUrl);
   };
 
   const handleCloseModal = () => {
